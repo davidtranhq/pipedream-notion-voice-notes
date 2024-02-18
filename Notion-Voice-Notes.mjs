@@ -92,6 +92,7 @@ export default {
 				"Arguments",
 				"Related Topics",
 				"Sentiment",
+				"Correct",
 			],
 			default: ["Summary", "Main Points", "Action Items", "Follow-up Questions"],
 			optional: false,
@@ -967,6 +968,10 @@ export default {
 				if (this.summary_options.includes("Sentiment")) {
 					prompt.sentiment = `Key "sentiment" - add a sentiment analysis`;
 				}
+
+				if (this.summary_options.includes("Correction")) {
+					prompt.sentiment = `Key "correction" - make grammatical and spelling corrections to the transcript. Do not change the ideas or content of the transcript.`
+				}
 			}
 
 			prompt.lock = `If the transcript contains nothing that fits a requested key, include a single array item for that key that says "Nothing found for this summary list type."
@@ -1015,6 +1020,10 @@ export default {
 
 			if ("sentiment" in prompt) {
 				exampleObject.sentiment = "positive";
+			}
+
+			if ("correction" in prmopt) {
+				exampleObject.correct = "The corrected version of the transcript.";
 			}
 
 			prompt.example = `Here is example formatting, which contains example keys for all the requested summary elements and lists. Be sure to include all the keys and values that you are instructed to include above. Example formatting: ${JSON.stringify(
@@ -1070,6 +1079,7 @@ export default {
 				acc.follow_up.push(curr.choice.follow_up || []);
 				acc.related_topics.push(curr.choice.related_topics || []);
 				acc.usageArray.push(curr.usage || 0);
+				acc.correction.push(curr.choice.correction || []);
 
 				return acc;
 			}, {
@@ -1084,6 +1094,7 @@ export default {
 				follow_up: [],
 				related_topics: [],
 				usageArray: [],
+				correction: [],
 			})
 
 			console.log(`ChatResponse object after ChatGPT items have been inserted:`)
@@ -1125,6 +1136,7 @@ export default {
 				references: chatResponse.references.flat(),
 				arguments: chatResponse.arguments.flat(),
 				follow_up: chatResponse.follow_up.flat(),
+				correction: chatResponse.correction.join(" "),
 				...(this.summary_options.includes("Related Topics") &&
 					filtered_related_set.length > 1 && {
 						related_topics: filtered_related_set.sort(),
